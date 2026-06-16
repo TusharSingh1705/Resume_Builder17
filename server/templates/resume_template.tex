@@ -1,0 +1,210 @@
+%-------------------------
+% Resume in LaTeX — Dynamic Template
+% All <<PLACEHOLDER>> markers are replaced by Django backend
+% License : MIT
+%-------------------------
+
+\documentclass[a4paper,11pt]{article}
+
+\usepackage{latexsym}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{ragged2e}
+\usepackage[empty]{fullpage}
+\usepackage{wrapfig}
+\usepackage{lipsum}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{titlesec}
+\usepackage{geometry}
+\usepackage{marvosym}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage{fontawesome5}
+\usepackage{multicol}
+\usepackage{graphicx}
+\usepackage{cfr-lm}
+\usepackage[T1]{fontenc}
+
+%----------------------------------------
+% Page Formatting
+%----------------------------------------
+
+\setlength{\multicolsep}{0pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\geometry{left=1.4cm, top=0.8cm, right=1.2cm, bottom=1cm}
+
+\usepackage[most]{tcolorbox}
+
+\tcbset{
+frame code={},
+center title,
+left=0pt,
+right=0pt,
+top=0pt,
+bottom=0pt,
+colback=gray!20,
+colframe=white,
+width=\dimexpr\textwidth\relax,
+enlarge left by=-2mm,
+boxsep=4pt,
+arc=0pt,outer arc=0pt
+}
+
+\urlstyle{same}
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+%----------------------------------------
+% Section formatting
+%----------------------------------------
+
+\titleformat{\section}
+{\vspace{2pt}\scshape\raggedright\large}
+{}{0em}{}
+[\color{black}\titlerule \vspace{1pt}]
+
+%----------------------------------------
+% Column Types
+%----------------------------------------
+
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\newcolumntype{R}{>{\raggedleft\arraybackslash}X}
+
+%----------------------------------------
+% Custom Commands
+%----------------------------------------
+
+\newcommand{\resumePOR}[3]{
+\item
+\begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+\textbf{#1} #2 & \textit{\small #3}
+\end{tabular*}
+}
+
+\newcommand{\resumeSubheading}[4]{
+\item
+\begin{tabular*}{0.98\textwidth}{l@{\extracolsep{\fill}}r}
+\textbf{#1} & \textit{\footnotesize #4} \\
+\textit{\footnotesize #3} & \footnotesize #2
+\end{tabular*}
+}
+
+\newcommand{\resumeItemListStart}{\begin{itemize}[leftmargin=3ex, itemsep=0.6mm]}
+\newcommand{\resumeItemListEnd}{\end{itemize}}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0mm, itemsep=2mm]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+
+\newcommand{\cvsection}[1]{
+\begin{tcolorbox}
+\textbf{\large #1}
+\end{tcolorbox}
+}
+
+%----------------------------------------
+% Personal Info (injected by backend)
+%----------------------------------------
+
+\newcommand{\name}{<<NAME>>}
+\newcommand{\subtitle}{<<SUBTITLE>>}
+\newcommand{\phone}{<<PHONE>>}
+\newcommand{\emaila}{<<EMAIL>>}
+
+\begin{document}
+\fontfamily{cmr}\selectfont
+
+%-----------------------------------------------------------
+% HEADER
+%-----------------------------------------------------------
+
+\parbox{\dimexpr\linewidth\relax}{
+\begin{tabularx}{\linewidth}{L r}
+
+\textbf{\Large \name} & {\footnotesize \faPhone\ +91-\phone}\\
+
+\subtitle & \href{mailto:\emaila}{\footnotesize \faEnvelope\ \emaila} \\
+
+& \href{<<GITHUB_URL>>}{\footnotesize \faGithub\ <<GITHUB_TEXT>>} \\
+
+& \href{<<LINKEDIN_URL>>}{\footnotesize \faLinkedin\ <<LINKEDIN_TEXT>>}
+
+\end{tabularx}
+}
+
+\vspace{-4mm}
+
+%-----------------------------------------------------------
+% EDUCATION
+%-----------------------------------------------------------
+
+\section{\textbf{Education}}
+
+\resumeSubHeadingListStart
+
+<<EDUCATION_ITEMS>>
+
+\resumeSubHeadingListEnd
+
+\vspace{-5mm}
+
+%-----------------------------------------------------------
+% SKILLS
+%-----------------------------------------------------------
+
+\section{\textbf{Technical Skills}}
+
+\begin{itemize}[leftmargin=0.05in, itemsep=0pt]
+
+<<SKILL_ITEMS>>
+
+\end{itemize}
+
+\vspace{-4mm}
+
+%-----------------------------------------------------------
+% POSITIONS OF RESPONSIBILITY
+%-----------------------------------------------------------
+
+\section{\textbf{Positions of Responsibility}}
+
+\resumeSubHeadingListStart
+
+<<RESPONSIBILITY_ITEMS>>
+
+\resumeSubHeadingListEnd
+
+\vspace{-4mm}
+
+%-----------------------------------------------------------
+% PROJECTS
+%-----------------------------------------------------------
+
+\section{\textbf{Projects}}
+
+\resumeSubHeadingListStart
+
+<<PROJECT_ITEMS>>
+
+\resumeSubHeadingListEnd
+
+%-----------------------------------------------------------
+% ACHIEVEMENTS
+%-----------------------------------------------------------
+
+\section{\textbf{Achievements}}
+
+\resumeSubHeadingListStart
+
+<<ACHIEVEMENT_ITEMS>>
+
+\resumeSubHeadingListEnd
+
+\end{document}

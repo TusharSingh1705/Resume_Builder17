@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resume Ready — Resume Builder</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:       #f4f5f7;
+      --surface:  #ffffff;
+      --border:   #d5d9e0;
+      --accent:   #3d5a80;
+      --accent2:  #2c4a6e;
+      --teal:     #3d5a80;
+      --text:     #1a1a2e;
+      --muted:    #6b7280;
+      --muted2:   #9ca3af;
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .success-card {
+      text-align: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 48px 40px;
+      max-width: 500px;
+      animation: fadeUp 0.6s ease;
+    }
+
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(20px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    .success-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+      display: block;
+    }
+
+    .success-card h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 24px;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    .success-card p {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+
+    .btn-download {
+      display: inline-block;
+      background: var(--teal);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 13px 28px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      transition: opacity 0.2s, transform 0.15s;
+      margin-bottom: 16px;
+    }
+
+    .btn-download:hover { opacity:0.9; transform:translateY(-1px); }
+
+    .btn-dashboard {
+      display: inline-block;
+      background: rgba(61,90,128,0.08);
+      border: 1px solid rgba(61,90,128,0.2);
+      color: var(--accent);
+      border-radius: 10px;
+      padding: 10px 20px;
+      font-size: 13px;
+      font-weight: 500;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+
+    .btn-dashboard:hover { background:rgba(61,90,128,0.15); }
+  </style>
+</head>
+<body>
+  <div class="success-card">
+    <span class="success-icon">✅</span>
+    <h1>Your Resume is Ready!</h1>
+    <p>Your professional LaTeX-compiled resume has been generated successfully.</p>
+    <% if (typeof pdf_url !== 'undefined' && pdf_url) { %>
+      <a href="<%= pdf_url %>" class="btn-download" download>📥 Download PDF Resume</a>
+      <br>
+    <% } %>
+    <a href="/dashboard" class="btn-dashboard">Go to Dashboard →</a>
+  </div>
+</body>
+</html>
