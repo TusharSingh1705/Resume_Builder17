@@ -23,6 +23,15 @@ const { globalErrorHandler } = require('./middleware/errorHandler');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Debug: log which env vars are available at startup
+console.log('  🔍 ENV CHECK:', {
+  MONGODB_URI: process.env.MONGODB_URI ? '✅ SET' : '❌ MISSING',
+  SESSION_SECRET: process.env.SESSION_SECRET ? '✅ SET' : '❌ MISSING',
+  GOOGLE_API_KEY: process.env.GOOGLE_API_KEY ? '✅ SET' : '❌ MISSING',
+  NODE_ENV: process.env.NODE_ENV || 'not set',
+  VERCEL: process.env.VERCEL || 'not set',
+});
+
 // Cache the DB connection promise so it's only called once
 const dbReady = connectDB();
 
@@ -68,22 +77,29 @@ app.use(mongoSanitize());
 
 app.use(hpp());
 
-app.use(session({
+const sessionConfig = {
   secret: process.env.SESSION_SECRET || 'fallback-secret-for-dev',
   resave: false,
   saveUninitialized: false,
-  store: MongoStore.create({
-    mongoUrl: process.env.MONGODB_URI,
-    ttl: 14 * 24 * 60 * 60, 
-    collectionName: 'sessions',
-  }),
   cookie: {
     maxAge: 14 * 24 * 60 * 60 * 1000, 
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
   },
-}));
+};
+
+if (process.env.MONGODB_URI) {
+  sessionConfig.store = MongoStore.create({
+    mongoUrl: process.env.MONGODB_URI,
+    ttl: 14 * 24 * 60 * 60, 
+    collectionName: 'sessions',
+  });
+} else {
+  console.warn('  ⚠️  MONGODB_URI not set — using in-memory session store (sessions will not persist)');
+}
+
+app.use(session(sessionConfig));
 
 app.use(flash());
 
@@ -122,6 +138,20 @@ app.use((req, res, next) => {
 });
 
 app.use(doubleCsrfProtection);
+
+// Diagnostic route (remove after debugging)
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    env: {
+      MONGODB_URI: process.env.MONGODB_URI ? 'set' : 'MISSING',
+      SESSION_SECRET: process.env.SESSION_SECRET ? 'set' : 'MISSING',
+      GOOGLE_API_KEY: process.env.GOOGLE_API_KEY ? 'set' : 'MISSING',
+      NODE_ENV: process.env.NODE_ENV || 'not set',
+    },
+    mongoState: mongoose.connection.readyState,
+  });
+});
 
 app.use('/', authRoutes);
 
