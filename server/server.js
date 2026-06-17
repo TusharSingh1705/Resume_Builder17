@@ -125,9 +125,12 @@ app.use((req, res) => {
 
 app.use(globalErrorHandler);
 
-app.listen(PORT, () => {
-  console.log(`\n  ✅ Resume Builder running at http://localhost:${PORT}`);
-  console.log(`  📂 Environment: ${process.env.NODE_ENV || 'development'}\n`);
-});
+// Only listen when running locally (not on Vercel)
+if (process.env.VERCEL !== '1') {
+  app.listen(PORT, () => {
+    console.log(`\n  ✅ Resume Builder running at http://localhost:${PORT}`);
+    console.log(`  📂 Environment: ${process.env.NODE_ENV || 'development'}\n`);
+  });
+}
 
 module.exports = app;
