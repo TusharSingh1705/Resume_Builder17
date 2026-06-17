@@ -73,7 +73,7 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   store: MongoStore.create({
-    clientPromise: mongoose.connection.asPromise().then((conn) => conn.getClient()),
+    mongoUrl: process.env.MONGODB_URI,
     ttl: 14 * 24 * 60 * 60, 
     collectionName: 'sessions',
   }),
