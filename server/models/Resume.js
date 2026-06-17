@@ -85,6 +85,11 @@ const resumeSchema = new mongoose.Schema({
     type: [String],
     default: [],
   },
+  // PDF binary data stored in MongoDB (needed for serverless environments like Vercel)
+  pdfData: {
+    type: Buffer,
+    default: null,
+  },
 }, {
   timestamps: true, 
 });

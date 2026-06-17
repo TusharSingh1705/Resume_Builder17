@@ -1,41 +1,14 @@
 
 const fs = require('fs');
 const path = require('path');
-const os = require('os');
-const { execSync, execFileSync } = require('child_process');
 
 const Resume = require('../models/Resume');
 const asyncHandler = require('../utils/asyncHandler');
 const { escapeLatex } = require('../utils/latexEscape');
 const { enhanceText: aiEnhanceText } = require('../services/aiService');
 
-function findPdflatex() {
-
-  try {
-    const result = execSync('where pdflatex', { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] });
-    const firstLine = result.trim().split('\n')[0].trim();
-    if (firstLine && fs.existsSync(firstLine)) {
-      return firstLine;
-    }
-  } catch {
-
-  }
-
-  const localAppData = process.env.LOCALAPPDATA || '';
-  const commonPaths = [
-    path.join(localAppData, 'Programs', 'MiKTeX', 'miktex', 'bin', 'x64', 'pdflatex.exe'),
-    'C:\\Program Files\\MiKTeX\\miktex\\bin\\x64\\pdflatex.exe',
-    'C:\\miktex\\miktex\\bin\\x64\\pdflatex.exe',
-  ];
-
-  for (const p of commonPaths) {
-    if (fs.existsSync(p)) {
-      return p;
-    }
-  }
-
-  return 'pdflatex';
-}
+// Cloud LaTeX compilation API
+const LATEX_API_URL = 'https://latex.ytotech.com/builds/sync';
 
 const home = (req, res) => {
   res.render('index');
@@ -257,30 +230,32 @@ const generateResume = asyncHandler(async (req, res) => {
     texContent = texContent.split(key).join(value);
   }
 
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'resume-'));
-  const texFilePath = path.join(tempDir, 'resume.tex');
-  const pdfFilePath = path.join(tempDir, 'resume.pdf');
-
+  // ── 5. COMPILE LATEX VIA CLOUD API ─────────────────────────
   try {
-
-    fs.writeFileSync(texFilePath, texContent, 'utf-8');
-
-    const pdflatexPath = findPdflatex();
-    execFileSync(pdflatexPath, ['-interaction=nonstopmode', '-halt-on-error', 'resume.tex'], {
-      cwd: tempDir,
-      stdio: ['pipe', 'pipe', 'pipe'],
-      timeout: 30000, 
+    const response = await fetch(LATEX_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        compiler: 'pdflatex',
+        resources: [
+          {
+            main: true,
+            content: texContent,
+          },
+        ],
+      }),
     });
 
-    const resumesDir = path.join(__dirname, '..', 'media', 'resumes');
-    if (!fs.existsSync(resumesDir)) {
-      fs.mkdirSync(resumesDir, { recursive: true });
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`LaTeX API returned ${response.status}: ${errorText}`);
     }
 
-    const finalPdfPath = path.join(resumesDir, `resume_${resumeObj._id}.pdf`);
-    fs.copyFileSync(pdfFilePath, finalPdfPath);
+    const pdfBuffer = Buffer.from(await response.arrayBuffer());
 
-    cleanupTempDir(tempDir);
+    // Store PDF in MongoDB
+    resumeObj.pdfData = pdfBuffer;
+    await resumeObj.save();
 
     return res.redirect('/dashboard');
 
@@ -288,16 +263,12 @@ const generateResume = asyncHandler(async (req, res) => {
 
     await Resume.findByIdAndDelete(resumeObj._id);
 
-    cleanupTempDir(tempDir);
-
-    const errorLog = compileError.stdout?.toString() || compileError.stderr?.toString() || compileError.message || 'No error output captured.';
-
     return res.status(500).send(
       `<h1>LaTeX Compilation Failed</h1>` +
       `<p>There was an error generating your resume PDF. ` +
       `Please check your input for special characters.</p>` +
       `<pre style="max-height:400px;overflow:auto;background:#f5f5f5;` +
-      `padding:16px;border-radius:8px;font-size:12px;">${escapeHtml(errorLog)}</pre>` +
+      `padding:16px;border-radius:8px;font-size:12px;">${escapeHtml(compileError.message)}</pre>` +
       `<br><a href="/home">← Go Back</a>`
     );
   }
@@ -316,21 +287,12 @@ const deleteResume = asyncHandler(async (req, res) => {
   const resumeId = req.params.id;
 
   try {
-
-    const resume = await Resume.findOneAndDelete({
+    await Resume.findOneAndDelete({
       _id: resumeId,
       user: req.session.userId,
     });
-
-    if (resume) {
-
-      const pdfPath = path.join(__dirname, '..', 'media', 'resumes', `resume_${resume._id}.pdf`);
-      if (fs.existsSync(pdfPath)) {
-        fs.unlinkSync(pdfPath);
-      }
-    }
   } catch {
-
+    // ignore
   }
 
   return res.redirect('/dashboard');
@@ -353,9 +315,8 @@ const downloadResume = asyncHandler(async (req, res) => {
     return res.status(404).send('Resume not found.');
   }
 
-  const pdfPath = path.join(__dirname, '..', 'media', 'resumes', `resume_${resume._id}.pdf`);
-  if (!fs.existsSync(pdfPath)) {
-    return res.status(404).send('PDF file not found.');
+  if (!resume.pdfData) {
+    return res.status(404).send('PDF not yet generated for this resume.');
   }
 
   const safeName = resume.name.replace(/ /g, '_').replace(/\//g, '-');
@@ -363,8 +324,7 @@ const downloadResume = asyncHandler(async (req, res) => {
 
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-  const fileStream = fs.createReadStream(pdfPath);
-  fileStream.pipe(res);
+  res.send(resume.pdfData);
 });
 
 const renameResume = asyncHandler(async (req, res) => {
@@ -436,14 +396,6 @@ function escapeHtml(text) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
-}
-
-function cleanupTempDir(dirPath) {
-  try {
-    fs.rmSync(dirPath, { recursive: true, force: true });
-  } catch {
-
-  }
 }
 
 module.exports = {
