@@ -23,15 +23,6 @@ const { globalErrorHandler } = require('./middleware/errorHandler');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Debug: log which env vars are available at startup
-console.log('  🔍 ENV CHECK:', {
-  MONGODB_URI: process.env.MONGODB_URI ? '✅ SET' : '❌ MISSING',
-  SESSION_SECRET: process.env.SESSION_SECRET ? '✅ SET' : '❌ MISSING',
-  GOOGLE_API_KEY: process.env.GOOGLE_API_KEY ? '✅ SET' : '❌ MISSING',
-  NODE_ENV: process.env.NODE_ENV || 'not set',
-  VERCEL: process.env.VERCEL || 'not set',
-});
-
 // Cache the DB connection promise so it's only called once
 const dbReady = connectDB();
 
@@ -141,20 +132,6 @@ app.use((req, res, next) => {
 });
 
 app.use(doubleCsrfProtection);
-
-// Diagnostic route (remove after debugging)
-app.get('/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    env: {
-      MONGODB_URI: process.env.MONGODB_URI ? 'set' : 'MISSING',
-      SESSION_SECRET: process.env.SESSION_SECRET ? 'set' : 'MISSING',
-      GOOGLE_API_KEY: process.env.GOOGLE_API_KEY ? 'set' : 'MISSING',
-      NODE_ENV: process.env.NODE_ENV || 'not set',
-    },
-    mongoState: mongoose.connection.readyState,
-  });
-});
 
 app.use('/', authRoutes);
 
