@@ -23,7 +23,18 @@ const { globalErrorHandler } = require('./middleware/errorHandler');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-connectDB();
+// Cache the DB connection promise so it's only called once
+const dbReady = connectDB();
+
+// Ensure DB is connected before handling any request
+app.use(async (req, res, next) => {
+  try {
+    await dbReady;
+    next();
+  } catch (err) {
+    res.status(500).send('Database connection failed. Please check server logs.');
+  }
+});
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '../client/views'));

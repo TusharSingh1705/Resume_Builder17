@@ -1,18 +1,18 @@
 
 const mongoose = require('mongoose');
 
-let mongoMemoryServer = null;
+let isConnected = false;
 
 const connectDB = async () => {
+  if (isConnected) {
+    return;
+  }
+
   try {
-    let mongoURI = process.env.MONGODB_URI;
+    const mongoURI = process.env.MONGODB_URI;
 
     if (!mongoURI) {
-      console.log('  ⏳ No MONGODB_URI found. Starting in-memory MongoDB (this takes a moment)...');
-      const { MongoMemoryServer } = require('mongodb-memory-server');
-      mongoMemoryServer = await MongoMemoryServer.create();
-      mongoURI = mongoMemoryServer.getUri();
-      console.log('  ✨ In-memory MongoDB started successfully!');
+      throw new Error('MONGODB_URI environment variable is not set. Please add it to your Vercel project settings.');
     }
 
     const conn = await mongoose.connect(mongoURI, {
@@ -20,23 +20,28 @@ const connectDB = async () => {
       socketTimeoutMS: 45000,
     });
 
+    isConnected = true;
     console.log(`  📦 MongoDB Connected: ${conn.connection.host}/${conn.connection.name}`);
 
     mongoose.connection.on('error', (err) => {
       console.error('  ❌ MongoDB connection error:', err.message);
+      isConnected = false;
     });
 
     mongoose.connection.on('disconnected', () => {
-      console.warn('  ⚠️  MongoDB disconnected. Attempting reconnect...');
+      console.warn('  ⚠️  MongoDB disconnected.');
+      isConnected = false;
     });
 
     mongoose.connection.on('reconnected', () => {
       console.log('  🔄 MongoDB reconnected successfully.');
+      isConnected = true;
     });
 
   } catch (error) {
     console.error(`  ❌ MongoDB connection failed: ${error.message}`);
-    process.exit(1);
+    isConnected = false;
+    throw error;
   }
 };
 
