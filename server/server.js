@@ -48,6 +48,9 @@ app.use(async (req, res, next) => {
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '../client/views'));
 
+// Trust Vercel's reverse proxy (required for secure cookies to work)
+app.set('trust proxy', 1);
+
 app.use(helmet({
   contentSecurityPolicy: false, 
   crossOriginEmbedderPolicy: false,
